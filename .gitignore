@@ -4,6 +4,8 @@
 !/.etckeeper/*
 !/.git
 !/.git/*
+!/.playbook
+!/.playbook/**
 !/control/
 !/control/**
 !/ssh/
