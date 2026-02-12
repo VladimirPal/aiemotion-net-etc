@@ -1,0 +1,3 @@
+[submodule "control/sys"]
+	path = control/sys
+	url = git@github-sys-core:it-pal-net/sys-core.git
