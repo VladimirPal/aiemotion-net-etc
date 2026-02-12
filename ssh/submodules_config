@@ -3,3 +3,13 @@ Host github-root-dotfiles
     User git
     IdentityFile /root/.ssh/root-dotfiles_rsa
     IdentitiesOnly yes
+Host github-sys-core
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/sys_core_rsa
+    IdentitiesOnly yes
+Host github-scs-core
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/scs_core_rsa
+    IdentitiesOnly yes
