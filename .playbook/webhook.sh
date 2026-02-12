@@ -33,3 +33,6 @@ if ! git -C /etc diff --cached --quiet; then
 else
   echo "No changes staged in /etc; nothing to commit or push."
 fi
+
+#@step "Build webhook image"
+scs build webhook
