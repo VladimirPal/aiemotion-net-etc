@@ -68,3 +68,5 @@ check_mk/logwatch.state
 DEADJOE
 
 # end section managed by etckeeper
+!webhook/
+!webhook/**

@@ -4,3 +4,6 @@
 [submodule "control/scs"]
 	path = control/scs
 	url = git@github-scs-core:it-pal-net/scs-core.git
+[submodule "webhook/repo"]
+	path = webhook/repo
+	url = git@github.com:adnanh/webhook.git
