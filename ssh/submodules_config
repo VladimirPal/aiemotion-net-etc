@@ -1,0 +1,5 @@
+Host github-root-dotfiles
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/root-dotfiles_rsa
+    IdentitiesOnly yes
