@@ -49,6 +49,9 @@ else
   echo "No changes staged in /etc; nothing to commit or push."
 fi
 
+#@step "Build mailserver image"
+scs build mailserver
+
 #@group "Route53 DNS"
 #@env MAIL_DOMAIN=aiemotion.net
 #@env MAILSERVER_FQDN=mail.aiemotion.net
@@ -69,10 +72,6 @@ fi
 #@env ROUTE53_TTL=300
 . ".playbook/lib/mailserver.sh"
 
-: "${ROUTE53_HOSTED_ZONE_ID:?Set ROUTE53_HOSTED_ZONE_ID via #@env ROUTE53_HOSTED_ZONE_ID=...}"
-AWS_REGION="${AWS_REGION-us-east-1}"
-ROUTE53_TTL="${ROUTE53_TTL-300}"
-
 mailserver_init_aws_cmd
 
 mailserver_add_a_record "${ROUTE53_HOSTED_ZONE_ID}" "${MAILSERVER_FQDN}" "${MAILSERVER_IPV4}" || exit 1
@@ -85,15 +84,6 @@ mailserver_show_hetzner_ptr_hint "${MAILSERVER_IPV4}" "${MAILSERVER_FQDN}"
 #@step "Start mailserver container for key generation"
 #@env DMS_PROJECT_DIR=/etc/mailserver
 #@env DMS_CONTAINER_NAME=mailserver
-DMS_PROJECT_DIR="${DMS_PROJECT_DIR-/etc/mailserver}"
-DMS_CONTAINER_NAME="${DMS_CONTAINER_NAME-mailserver}"
-
-if [ ! -f "${DMS_PROJECT_DIR}/compose.yaml" ]; then
-  echo "compose.yaml not found in ${DMS_PROJECT_DIR}"
-  exit 1
-fi
-
-mkdir -p "${DMS_PROJECT_DIR}/docker-data/dms/config"
 docker compose -f "${DMS_PROJECT_DIR}/compose.yaml" up -d --wait --remove-orphans
 
 if ! docker ps --format '{{.Names}}' | rg -x "${DMS_CONTAINER_NAME}" >/dev/null 2>&1; then

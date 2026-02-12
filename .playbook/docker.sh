@@ -33,29 +33,29 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 docker --version
 
+#@step "Install and verify Docker Compose plugin"
+if docker compose version >/dev/null 2>&1; then
+  echo "docker compose already present: $(docker compose version)"
+else
+  echo "Installing docker-compose (Debian package)..."
+  apt-get install -y docker-compose
+fi
+
+if docker compose version >/dev/null 2>&1; then
+  docker compose version
+elif command -v docker-compose >/dev/null 2>&1; then
+  docker-compose version
+else
+  echo "Docker Compose install failed"
+  exit 1
+fi
+
 #@step "Install and verify Docker Buildx plugin"
 if docker buildx version >/dev/null 2>&1; then
   echo "docker buildx already present: $(docker buildx version)"
 else
   echo "Installing docker buildx plugin..."
-  if apt-get install -y docker-buildx-plugin; then
-    echo "Installed docker-buildx-plugin via apt"
-  else
-    echo "docker-buildx-plugin package unavailable; installing standalone plugin binary"
-    arch="$(uname -m)"
-    case "$arch" in
-      x86_64) buildx_arch="amd64" ;;
-      aarch64|arm64) buildx_arch="arm64" ;;
-      *)
-        echo "Unsupported architecture for buildx fallback install: $arch"
-        exit 1
-        ;;
-    esac
-    buildx_ver="v0.16.2"
-    mkdir -p /usr/libexec/docker/cli-plugins
-    curl -fsSL "https://github.com/docker/buildx/releases/download/${buildx_ver}/buildx-${buildx_ver}.linux-${buildx_arch}" -o /usr/libexec/docker/cli-plugins/docker-buildx
-    chmod +x /usr/libexec/docker/cli-plugins/docker-buildx
-  fi
+  apt-get install -y docker-buildx-plugin
 fi
 
 if ! docker buildx version >/dev/null 2>&1; then
