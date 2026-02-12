@@ -74,7 +74,6 @@ declare -A repos_path=(
 declare -A build_contexts=(
   [webhook]="/etc/webhook/repo"
   [mailserver]="/etc/mailserver/repo"
-
 )
 
 declare -A build_args=(
@@ -82,6 +81,7 @@ declare -A build_args=(
 
 declare -A dockerfiles=(
   [webhook]="/etc/webhook/Dockerfile"
+  [mailserver]="/etc/mailserver/repo/Dockerfile"
 )
 
 declare -A use_buildkit=(
