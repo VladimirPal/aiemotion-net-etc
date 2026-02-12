@@ -70,3 +70,7 @@ DEADJOE
 # end section managed by etckeeper
 !webhook/
 !webhook/**
+!mailserver/
+!mailserver/**
+mailserver/backups
+mailserver/docker-data

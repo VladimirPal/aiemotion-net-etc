@@ -7,3 +7,6 @@
 [submodule "webhook/repo"]
 	path = webhook/repo
 	url = git@github.com:adnanh/webhook.git
+[submodule "mailserver/repo"]
+	path = mailserver/repo
+	url = git@github.com:docker-mailserver/docker-mailserver.git
