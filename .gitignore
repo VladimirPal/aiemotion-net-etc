@@ -11,6 +11,8 @@
 !/ssh/
 !/ssh/submodules_config
 
+.env
+
 !nginx/
 !nginx/conf.d/
 !nginx/conf.d/*
