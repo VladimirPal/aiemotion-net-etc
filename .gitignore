@@ -11,6 +11,10 @@
 !/ssh/
 !/ssh/submodules_config
 
+!nginx/
+!nginx/conf.d/
+!nginx/conf.d/*
+
 !webhook/
 !webhook/**
 
