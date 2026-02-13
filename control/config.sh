@@ -11,6 +11,7 @@ VAULTWARDEN_DATA_PATH="/vw-data"
 VAULTWARDEN_PORT="8000"
 
 declare -A services=(
+  [authentik]="true"
   [webhook]="true"
   [mailserver]="true"
   [vaultwarden]="true"
@@ -47,6 +48,7 @@ declare -A run_args=(
 )
 
 declare -A backup_services=(
+  [authentik]="monthly:90"
   [mailserver]="weekly:30"
 )
 
@@ -54,6 +56,7 @@ declare -A backup_s3_root=(
 )
 
 declare -A services_path=(
+  [authentik]="/etc/authentik"
   [webhook]="/etc/webhook"
   [mailserver]="/etc/mailserver"
   [vaultwarden]="/etc/vaultwarden"
@@ -63,6 +66,7 @@ declare -A dependencies=(
 )
 
 declare -a start_order=(
+  "authentik"
   "mailserver"
   "vaultwarden"
   "webhook"

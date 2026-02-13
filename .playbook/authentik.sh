@@ -1,7 +1,6 @@
-#@ssh host=root.apps.it-pal.net
+#@ssh host=root.aiemotion.net
 
 #@group "Manage authentik Service"
-#@target root.apps.it-pal.net
 
 #@step "Status of authentik service"
 scs status authentik
@@ -21,8 +20,19 @@ scs backup authentik
 #@step "Upgrade authentik to the latest version"
 scs upgrade authentik
 
+#@step "Create authentik mailbox account (if needed)"
+#@env MAIL_AUTHENTIK_ACCOUNT=authentik@aiemotion.net
+#@env MAIL_AUTHENTIK_PASSWORD=
+docker exec mailserver setup email add "${MAIL_AUTHENTIK_ACCOUNT}" "${MAIL_AUTHENTIK_PASSWORD}"
+echo "Authentik mailbox account created: ${MAIL_AUTHENTIK_ACCOUNT}"
+
+#@step "Generate authentik secrets (PG_PASS and AUTHENTIK_SECRET_KEY)"
+PG_PASS="$(openssl rand -base64 48 | tr -d '\n')"
+AUTHENTIK_SECRET_KEY="$(openssl rand -base64 72 | tr -d '\n')"
+echo "PG_PASS=${PG_PASS}"
+echo "AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}"
+
 #@group "Backup and Autostart Setup for authentik"
-#@target root.apps.it-pal.net
 
 #@step "Setup authentik backup service and timer"
 scs setup-backup authentik
@@ -44,7 +54,6 @@ systemctl status scs-autostart-authentik.service
 scs autostart authentik
 
 #@group "Adminctl"
-#@target root.apps.it-pal.net
 
 #@step "Subscribe to authentik adminctl Redis channel"
 redis-cli -h 127.0.0.1 -p 6380 SUBSCRIBE adminctl
