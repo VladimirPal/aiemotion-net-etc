@@ -72,5 +72,7 @@ DEADJOE
 !webhook/**
 !mailserver/
 !mailserver/**
+!vaultwarden/
+!vaultwarden/**
 mailserver/backups
 mailserver/docker-data

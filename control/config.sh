@@ -6,9 +6,14 @@ USER_GID="${USER_GID:-$(id -g)}"
 USER_UID=$(id -u)
 DOCKER_GROUP="$(getent group docker | cut -d: -f3)"
 
+VAULTWARDEN_DOMAIN="https://vault.aiemotion.net"
+VAULTWARDEN_DATA_PATH="/vw-data"
+VAULTWARDEN_PORT="8000"
+
 declare -A services=(
   [webhook]="true"
   [mailserver]="true"
+  [vaultwarden]="true"
 )
 
 declare -A service_groups=(
@@ -16,11 +21,13 @@ declare -A service_groups=(
 
 declare -A containers=(
   [webhook]="webhook"
+  [vaultwarden]="vaultwarden"
 )
 
 declare -A images=(
-  [webhook]="webhook-it-pal:latest"
+  [webhook]="it-pal/webhook:latest"
   [mailserver]="it-pal/mailserver:latest"
+  [vaultwarden]="vaultwarden/server:latest"
 )
 
 declare -A run_args=(
@@ -31,6 +38,12 @@ declare -A run_args=(
     -p 127.0.0.1:9040:9000 \
     ${images[webhook]} \
     -verbose -debug -hooks=/etc/webhook/hooks.json -port 9000"
+  [vaultwarden]="-d --name ${containers[vaultwarden]} \
+    --restart unless-stopped \
+    --env DOMAIN=\"${VAULTWARDEN_DOMAIN}\" \
+    --volume ${VAULTWARDEN_DATA_PATH}:/data/ \
+    --publish 127.0.0.1:${VAULTWARDEN_PORT}:80 \
+    ${images[vaultwarden]}"
 )
 
 declare -A backup_services=(
@@ -43,6 +56,7 @@ declare -A backup_s3_root=(
 declare -A services_path=(
   [webhook]="/etc/webhook"
   [mailserver]="/etc/mailserver"
+  [vaultwarden]="/etc/vaultwarden"
 )
 
 declare -A dependencies=(
@@ -50,11 +64,13 @@ declare -A dependencies=(
 
 declare -a start_order=(
   "mailserver"
+  "vaultwarden"
   "webhook"
 )
 
 declare -a stop_order=(
   "mailserver"
+  "vaultwarden"
   "webhook"
 )
 
