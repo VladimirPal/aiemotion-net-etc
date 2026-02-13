@@ -56,8 +56,6 @@ verify_dns_contains "A" "${AUTHENTIK_DOMAIN%.}" "${AUTHENTIK_IPV4}" || exit 1
 #@env AUTHENTIK_DOMAIN=id.aiemotion.net
 #@env LETSENCRYPT_EMAIL=admin@aiemotion.net
 #@env CERTBOT_WEBROOT=/var/www/letsencrypt
-#@env AUTHENTIK_NGINX_HTTP_TEMPLATE=nginx/conf.d/id.aiemotion.net.http.conf
-#@env AUTHENTIK_NGINX_HTTPS_TEMPLATE=nginx/conf.d/id.aiemotion.net.conf
 #@env AUTHENTIK_NGINX_CONF=/etc/nginx/conf.d/id.aiemotion.net.conf
 
 #@step "Install Certbot for Let's Encrypt"
@@ -65,13 +63,9 @@ apt-get update -y
 apt-get install -y certbot
 certbot --version
 
-#@step "Bootstrap HTTP-only Nginx vhost for ACME challenge"
-mkdir -p "${CERTBOT_WEBROOT}"
-chown -R www-data:www-data "${CERTBOT_WEBROOT}" || true
-install -m 0644 "${AUTHENTIK_NGINX_HTTP_TEMPLATE}" "${AUTHENTIK_NGINX_CONF}"
-
-nginx -t
-systemctl reload nginx
+#@step "Enable and start certbot.timer for automatic renewal"
+systemctl enable --now certbot.timer
+systemctl status certbot.timer --no-pager
 
 #@step "Issue/Renew Let's Encrypt certificate for Authentik domain"
 certbot certonly --webroot \
@@ -89,22 +83,23 @@ fi
 
 #@step "Ensure recommended Let's Encrypt SSL options files exist"
 if [ ! -f /etc/letsencrypt/options-ssl-nginx.conf ]; then
+  echo "Downloading /etc/letsencrypt/options-ssl-nginx.conf ..."
   curl -fsSL \
-    https://raw.githubusercontent.com/certbot/certbot/main/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf \
+    https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf \
     -o /etc/letsencrypt/options-ssl-nginx.conf
 fi
+echo "Ready: /etc/letsencrypt/options-ssl-nginx.conf"
 
 if [ ! -f /etc/letsencrypt/ssl-dhparams.pem ]; then
+  echo "Downloading /etc/letsencrypt/ssl-dhparams.pem ..."
   curl -fsSL \
-    https://raw.githubusercontent.com/certbot/certbot/main/certbot/certbot/ssl-dhparams.pem \
+    https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem \
     -o /etc/letsencrypt/ssl-dhparams.pem
 fi
+echo "Ready: /etc/letsencrypt/ssl-dhparams.pem"
 
-#@step "Install full HTTPS Nginx reverse proxy config for Authentik"
-install -m 0644 "${AUTHENTIK_NGINX_HTTPS_TEMPLATE}" "${AUTHENTIK_NGINX_CONF}"
-
-nginx -t
-systemctl reload nginx
+#@step "Verify automatic renewal with certbot dry-run"
+certbot renew --dry-run
 
 #@group "Backup and Autostart Setup for authentik"
 
