@@ -58,7 +58,7 @@ const config = {
         path: "../decisions",
         showReadingTime: true,
         blogTitle: "Architecture Decisions",
-        blogDescription: "Architecture Decision Records (ADRs) for IT-Pal",
+        blogDescription: "Architecture Decision Records (ADRs) for AIEmotion",
         blogSidebarTitle: "Recent Decisions",
         blogSidebarCount: 5,
         editUrl: "https://github.com/web-pal/apps-it-pal-net-etc/tree/master/docusaurus",
@@ -76,15 +76,15 @@ const config = {
       // Replace with your project's social card
       image: "img/docusaurus-social-card.jpg",
       navbar: {
-        title: "IT-Pal Docs",
+        title: "AIEmotion Docs",
         logo: {
-          alt: "IT-Pal Logo",
+          alt: "AIEmotion Logo",
           src: "img/logo.svg",
         },
         items: [
           {
             type: "docSidebar",
-            sidebarId: "itPalDocsSidebar",
+            sidebarId: "aiemotionDocsSidebar",
             position: "left",
             label: "Documentation",
           },
@@ -94,7 +94,7 @@ const config = {
             position: "left",
           },
           {
-            href: "https://github.com/web-pal/apps-it-pal-net-etc/tree/master/docusaurus",
+            href: "https://github.com/aiemotion/aiemotion-docs/tree/master/docusaurus",
             label: "GitHub",
             position: "right",
           },
@@ -121,12 +121,12 @@ const config = {
             items: [
               {
                 label: "GitHub",
-                href: "https://github.com/web-pal/apps-it-pal-net-etc",
+                href: "https://github.com/aiemotion/aiemotion-docs",
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} IT-Pal. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} AIEmotion. Built with Docusaurus.`,
       },
       prism: {
         theme: prismThemes.github,

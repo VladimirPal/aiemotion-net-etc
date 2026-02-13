@@ -23,11 +23,16 @@ VAULTWARDEN_SSO_SCOPES="${VAULTWARDEN_SSO_SCOPES:-email vaultwarden-email profil
 VAULTWARDEN_SSO_CLIENT_ID="${VAULTWARDEN_SSO_CLIENT_ID:-}"
 VAULTWARDEN_SSO_CLIENT_SECRET="${VAULTWARDEN_SSO_CLIENT_SECRET:-}"
 
+DOCUSAURUS_ARGS="--rm -it \
+  -v /etc/docusaurus:/app \
+  -v /etc/control/docs/memory-alive-docs:/app/docs/memory-alive-docs"
+
 declare -A services=(
   [authentik]="true"
   [webhook]="true"
   [mailserver]="true"
   [vaultwarden]="true"
+  ["docusaurus-builder"]="true"
 )
 
 declare -A service_groups=(
@@ -36,12 +41,14 @@ declare -A service_groups=(
 declare -A containers=(
   [webhook]="webhook"
   [vaultwarden]="vaultwarden"
+  ["docusaurus-builder"]="docusaurus-builder"
 )
 
 declare -A images=(
   [webhook]="it-pal/webhook:latest"
   [mailserver]="it-pal/mailserver:latest"
   [vaultwarden]="vaultwarden/server:latest"
+  ["docusaurus-builder"]="it-pal/docusaurus-builder:latest"
 )
 
 declare -A run_args=(
@@ -69,6 +76,9 @@ declare -A run_args=(
     --volume ${VAULTWARDEN_DATA_PATH}:/data/ \
     --publish 127.0.0.1:${VAULTWARDEN_PORT}:80 \
     ${images[vaultwarden]}"
+  ["docusaurus-builder"]="$DOCUSAURUS_ARGS \
+    \${images["docusaurus-builder"]} \
+    bash -c \"npm install && npm run build\""
 )
 
 declare -A backup_services=(
@@ -84,6 +94,7 @@ declare -A services_path=(
   [webhook]="/etc/webhook"
   [mailserver]="/etc/mailserver"
   [vaultwarden]="/etc/vaultwarden"
+  ["docusaurus-builder"]="/etc/docusaurus"
 )
 
 declare -A dependencies=(
@@ -105,6 +116,7 @@ declare -a stop_order=(
 declare -A github_repos=(
   [webhook]="adnanh webhook master"
   [mailserver]="docker-mailserver docker-mailserver master"
+  ["docusaurus-builder"]="facebook docusaurus main"
 )
 
 declare -A skip_tags_releases=(
@@ -118,6 +130,7 @@ declare -A repos_path=(
 declare -A build_contexts=(
   [webhook]="/etc/webhook/repo"
   [mailserver]="/etc/mailserver/repo"
+  ["docusaurus-builder"]="/etc/docusaurus"
 )
 
 declare -A build_args=(
@@ -126,11 +139,13 @@ declare -A build_args=(
 declare -A dockerfiles=(
   [webhook]="/etc/webhook/Dockerfile"
   [mailserver]="/etc/mailserver/repo/Dockerfile"
+  ["docusaurus-builder"]="/etc/docusaurus/Dockerfile"
 )
 
 declare -A use_buildkit=(
   [webhook]="true"
   [mailserver]="true"
+  ["docusaurus-builder"]="true"
 )
 
 # S3 Backup Configuration

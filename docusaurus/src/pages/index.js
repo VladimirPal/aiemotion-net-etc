@@ -16,7 +16,7 @@ function HomepageHeader() {
           {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">
-          Documentation for IT-Pal systems, processes, and best practices
+          Documentation for AIEmotion products and services
         </p>
         <div className={styles.buttons}>
           <Link
@@ -35,7 +35,7 @@ export default function Home() {
   return (
     <Layout
       title={`${siteConfig.title} - Technical Documentation`}
-      description="IT-Pal technical documentation covering system architecture, development guidelines, security protocols, and best practices.">
+      description="AIEmotion technical documentation covering system architecture, development guidelines, security protocols, and best practices.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />
