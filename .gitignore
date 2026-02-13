@@ -33,6 +33,14 @@ mailserver/docker-data
 !authentik/**
 authentik/.env
 
+!docusaurus/
+!docusaurus/**/*
+
+!control/docs/
+!control/docs/**
+!control/docs/memory-alive-docs/
+!control/docs/memory-alive-docs/**
+
 # Add more allowlist paths below as needed.
 # begin section managed by etckeeper (do not edit this section by hand)
 
@@ -91,7 +99,3 @@ check_mk/logwatch.state
 DEADJOE
 
 # end section managed by etckeeper
-!control/docs/
-!control/docs/**
-!control/docs/memory-alive-docs/
-!control/docs/memory-alive-docs/**
