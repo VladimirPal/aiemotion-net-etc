@@ -3,11 +3,6 @@
 #@group "Install Nginx"
 
 #@step "Install latest Nginx from official repository"
-if ! command -v apt-get >/dev/null 2>&1; then
-  echo "Unsupported package manager (Debian/Ubuntu apt-get required)"
-  exit 1
-fi
-
 apt-get update -y
 apt-get install -y curl gnupg2 ca-certificates lsb-release debian-archive-keyring
 
@@ -16,7 +11,7 @@ curl -fsSL https://nginx.org/keys/nginx_signing.key \
   | gpg --dearmor -o /etc/apt/keyrings/nginx-archive-keyring.gpg
 chmod 644 /etc/apt/keyrings/nginx-archive-keyring.gpg
 
-codename="$(. /etc/os-release && echo "${VERSION_CODENAME:-}")"
+codename="$(. /etc/os-release && echo "${VERSION_CODENAME-}")"
 if [ -z "$codename" ]; then
   echo "Unable to determine distro codename from /etc/os-release"
   exit 1
@@ -36,10 +31,6 @@ fi
 nginx -v
 
 #@step "Enable and start Nginx service"
-if ! command -v systemctl >/dev/null 2>&1; then
-  echo "systemctl is required to manage nginx service on this host."
-  exit 1
-fi
 systemctl enable --now nginx
 systemctl restart nginx
 systemctl status nginx --no-pager

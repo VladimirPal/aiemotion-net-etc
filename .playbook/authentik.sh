@@ -20,7 +20,8 @@ scs backup authentik
 #@step "Upgrade authentik to the latest version"
 scs upgrade authentik
 
-#@step "Create authentik mailbox account (if needed)"
+#@group "Initial Setup"
+#@step "Create authentik mailbox account"
 #@env MAIL_AUTHENTIK_ACCOUNT=authentik@aiemotion.net
 #@env MAIL_AUTHENTIK_PASSWORD=
 docker exec mailserver setup email add "${MAIL_AUTHENTIK_ACCOUNT}" "${MAIL_AUTHENTIK_PASSWORD}"
@@ -31,6 +32,79 @@ PG_PASS="$(openssl rand -base64 48 | tr -d '\n')"
 AUTHENTIK_SECRET_KEY="$(openssl rand -base64 72 | tr -d '\n')"
 echo "PG_PASS=${PG_PASS}"
 echo "AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}"
+
+#@step "Apply Route53 A record for Authentik domain (id.aiemotion.net)"
+#@env AWS_PROFILE=s3-cloudfront-admin
+#@env AWS_REGION=us-east-1
+#@env ROUTE53_HOSTED_ZONE_ID=Z04463842QPY69QYWA7RY
+#@env ROUTE53_TTL=300
+#@env AUTHENTIK_DOMAIN=id.aiemotion.net
+#@env AUTHENTIK_IPV4=157.180.4.111
+. ".playbook/lib/mailserver.sh"
+init_aws_cmd
+
+add_a_record "${ROUTE53_HOSTED_ZONE_ID}" "${AUTHENTIK_DOMAIN}" "${AUTHENTIK_IPV4}" || exit 1
+
+#@step "Verify Authentik DNS A record"
+#@env AUTHENTIK_DOMAIN=id.aiemotion.net
+#@env AUTHENTIK_IPV4=157.180.4.111
+. ".playbook/lib/mailserver.sh"
+
+verify_dns_contains "A" "${AUTHENTIK_DOMAIN%.}" "${AUTHENTIK_IPV4}" || exit 1
+
+#@group "Nginx + Let's Encrypt for Authentik"
+#@env AUTHENTIK_DOMAIN=id.aiemotion.net
+#@env LETSENCRYPT_EMAIL=admin@aiemotion.net
+#@env CERTBOT_WEBROOT=/var/www/letsencrypt
+#@env AUTHENTIK_NGINX_HTTP_TEMPLATE=nginx/conf.d/id.aiemotion.net.http.conf
+#@env AUTHENTIK_NGINX_HTTPS_TEMPLATE=nginx/conf.d/id.aiemotion.net.conf
+#@env AUTHENTIK_NGINX_CONF=/etc/nginx/conf.d/id.aiemotion.net.conf
+
+#@step "Install Certbot for Let's Encrypt"
+apt-get update -y
+apt-get install -y certbot
+certbot --version
+
+#@step "Bootstrap HTTP-only Nginx vhost for ACME challenge"
+mkdir -p "${CERTBOT_WEBROOT}"
+chown -R www-data:www-data "${CERTBOT_WEBROOT}" || true
+install -m 0644 "${AUTHENTIK_NGINX_HTTP_TEMPLATE}" "${AUTHENTIK_NGINX_CONF}"
+
+nginx -t
+systemctl reload nginx
+
+#@step "Issue/Renew Let's Encrypt certificate for Authentik domain"
+certbot certonly --webroot \
+  -w "${CERTBOT_WEBROOT}" \
+  --non-interactive \
+  --agree-tos \
+  --email "${LETSENCRYPT_EMAIL}" \
+  --keep-until-expiring \
+  -d "${AUTHENTIK_DOMAIN}"
+
+if [ ! -s "/etc/letsencrypt/live/${AUTHENTIK_DOMAIN}/fullchain.pem" ] || [ ! -s "/etc/letsencrypt/live/${AUTHENTIK_DOMAIN}/privkey.pem" ]; then
+  echo "Let's Encrypt certificate files not found for ${AUTHENTIK_DOMAIN}."
+  exit 1
+fi
+
+#@step "Ensure recommended Let's Encrypt SSL options files exist"
+if [ ! -f /etc/letsencrypt/options-ssl-nginx.conf ]; then
+  curl -fsSL \
+    https://raw.githubusercontent.com/certbot/certbot/main/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf \
+    -o /etc/letsencrypt/options-ssl-nginx.conf
+fi
+
+if [ ! -f /etc/letsencrypt/ssl-dhparams.pem ]; then
+  curl -fsSL \
+    https://raw.githubusercontent.com/certbot/certbot/main/certbot/certbot/ssl-dhparams.pem \
+    -o /etc/letsencrypt/ssl-dhparams.pem
+fi
+
+#@step "Install full HTTPS Nginx reverse proxy config for Authentik"
+install -m 0644 "${AUTHENTIK_NGINX_HTTPS_TEMPLATE}" "${AUTHENTIK_NGINX_CONF}"
+
+nginx -t
+systemctl reload nginx
 
 #@group "Backup and Autostart Setup for authentik"
 
