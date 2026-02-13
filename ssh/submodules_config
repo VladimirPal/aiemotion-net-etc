@@ -13,3 +13,8 @@ Host github-scs-core
     User git
     IdentityFile /root/.ssh/scs_core_rsa
     IdentitiesOnly yes
+Host github-memory-alive-docs
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/memory_alive_docs_rsa
+    IdentitiesOnly yes

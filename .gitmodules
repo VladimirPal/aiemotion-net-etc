@@ -10,3 +10,6 @@
 [submodule "mailserver/repo"]
 	path = mailserver/repo
 	url = git@github.com:docker-mailserver/docker-mailserver.git
+[submodule "control/docs/memory-alive-docs"]
+	path = control/docs/memory-alive-docs
+	url = git@github-memory-alive-docs:VladimirPal/memory-alive-docs.git

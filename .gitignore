@@ -91,3 +91,7 @@ check_mk/logwatch.state
 DEADJOE
 
 # end section managed by etckeeper
+!control/docs/
+!control/docs/**
+!control/docs/memory-alive-docs/
+!control/docs/memory-alive-docs/**
