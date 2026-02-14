@@ -2,6 +2,48 @@
 
 . ".playbook/lib/base.sh"
 
+mas_generate_ssh_keys_and_authorized_keys() {
+  ssh_dir="$1"
+  private_key_filename="$2"
+  public_key_filename="$3"
+  authorized_keys_filename="$4"
+  key_comment="$5"
+
+  private_key_path="${ssh_dir}/${private_key_filename}"
+  public_key_path="${ssh_dir}/${public_key_filename}"
+  authorized_keys_path="${ssh_dir}/${authorized_keys_filename}"
+
+  need mkdir || return 1
+  need chmod || return 1
+  need ssh-keygen || return 1
+  need touch || return 1
+  need cat || return 1
+  need grep || return 1
+
+  mkdir -p "${ssh_dir}"
+  chmod 700 "${ssh_dir}"
+
+  if [ ! -s "${private_key_path}" ] || [ ! -s "${public_key_path}" ]; then
+    ssh-keygen -t rsa -b 4096 -C "${key_comment}" -N "" -f "${private_key_path}"
+    echo "Generated SSH RSA keypair: ${private_key_path} and ${public_key_path}"
+  else
+    echo "SSH RSA keypair already exists: ${private_key_path} and ${public_key_path}"
+  fi
+
+  chmod 600 "${private_key_path}"
+  chmod 644 "${public_key_path}"
+
+  touch "${authorized_keys_path}"
+  pub_key="$(cat "${public_key_path}")"
+  if grep -Fqx -- "${pub_key}" "${authorized_keys_path}"; then
+    echo "authorized_keys already contains MAS public key: ${authorized_keys_path}"
+  else
+    printf '%s\n' "${pub_key}" >>"${authorized_keys_path}"
+    echo "Added MAS public key to authorized_keys: ${authorized_keys_path}"
+  fi
+  chmod 600 "${authorized_keys_path}"
+}
+
 mas_generate_secret_if_missing() {
   keys_dir="$1"
   filename="$2"

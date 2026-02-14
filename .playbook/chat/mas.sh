@@ -46,6 +46,21 @@ fi
 
 #@group "MAS keys"
 
+#@step "Generate MAS SSH RSA keys and authorized_keys"
+#@env MAS_SSH_DIR=/etc/chat/mas/ssh
+#@env MAS_SSH_PRIVATE_KEY_FILENAME=id_rsa
+#@env MAS_SSH_PUBLIC_KEY_FILENAME=id_rsa.pub
+#@env MAS_AUTHORIZED_KEYS_FILENAME=authorized_keys
+#@env MAS_SSH_KEY_COMMENT=mas-local-access
+. ".playbook/lib/mas.sh"
+
+mas_generate_ssh_keys_and_authorized_keys \
+  "${MAS_SSH_DIR}" \
+  "${MAS_SSH_PRIVATE_KEY_FILENAME}" \
+  "${MAS_SSH_PUBLIC_KEY_FILENAME}" \
+  "${MAS_AUTHORIZED_KEYS_FILENAME}" \
+  "${MAS_SSH_KEY_COMMENT}"
+
 #@step "Generate MAS encryption secret"
 #@env MAS_KEYS_DIR=/etc/chat/mas/keys
 #@env MAS_ENCRYPTION_SECRET_FILENAME=mas-encryption.hex
