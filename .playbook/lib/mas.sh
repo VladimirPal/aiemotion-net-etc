@@ -60,7 +60,8 @@ mas_generate_secret_if_missing() {
   fi
 
   umask 027
-  openssl rand -hex 32 >"${target}"
+  # MAS expects exactly 64 hex chars (32 bytes) without trailing newline.
+  openssl rand -hex 32 | tr -d '\n' >"${target}"
   chmod 640 "${target}"
   echo "Generated secret: ${target}"
 }

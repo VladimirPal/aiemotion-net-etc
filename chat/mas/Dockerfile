@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim AS runtime
+FROM debian:trixie-slim AS runtime
 
 # Install OpenSSH server for remote MAS CLI execution
 # api needs to SSH into this container to execute MAS CLI commands

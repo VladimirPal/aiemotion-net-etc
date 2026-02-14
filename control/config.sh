@@ -124,8 +124,7 @@ declare -A run_args=(
     -e POSTGRES_USER=$POSTGRES_SYNAPSE_USER \
     -e POSTGRES_PASSWORD=$POSTGRES_SYNAPSE_PASSWORD \
     -e POSTGRES_DB=$POSTGRES_SYNAPSE_DB \
-    -e POSTGRES_INITDB_ARGS=--encoding=UTF8 \
-    -e POSTGRES_INITDB_ARGS=--locale=C \
+    -e POSTGRES_INITDB_ARGS='--encoding=UTF8 --locale=C' \
     -e LC_COLLATE=C \
     -e LC_CTYPE=C \
     ${images["postgresql-chat"]}"

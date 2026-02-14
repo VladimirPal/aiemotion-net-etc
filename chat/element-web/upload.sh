@@ -17,10 +17,10 @@ echo "Uploading to S3..."
 aws s3 sync . "s3://$S3_BUCKET" --profile "$AWS_PROFILE"
 
 echo "Forcing config uploads..."
-aws s3 cp "config.json" "s3://$S3_BUCKET/config.json" --profile "$AWS_PROFILE"
-aws s3 cp "config.json" "s3://$S3_BUCKET/config.chat.aiemotion.net.json" --profile "$AWS_PROFILE"
+aws s3 cp "/etc/chat/element-web/config.json" "s3://$S3_BUCKET/config.json" --profile "$AWS_PROFILE"
+aws s3 cp "/etc/chat/element-web/config.json" "s3://$S3_BUCKET/config.chat.aiemotion.net.json" --profile "$AWS_PROFILE"
 
 echo "Invalidating CloudFront cache..."
-aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*" >/dev/null
+aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/*" >/dev/null
 
 echo "Deployment complete. Visit https://$AWS_PROFILE to see changes."
