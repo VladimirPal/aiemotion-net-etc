@@ -2,7 +2,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$(dirname "$SCRIPT_DIR")"
-source "$CONFIG_DIR/config.sh"
+source "$CONFIG_DIR/../control/config.sh"
 
 POSTGRES_USER=$POSTGRES_SYNAPSE_USER
 POSTGRES_PASSWORD=$POSTGRES_SYNAPSE_PASSWORD
