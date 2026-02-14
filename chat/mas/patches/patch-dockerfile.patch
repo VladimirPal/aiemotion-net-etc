@@ -1,0 +1,69 @@
+diff --git a/Dockerfile b/Dockerfile
+index 479dee3..5f751f5 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -68,6 +68,25 @@ FROM --platform=${BUILDPLATFORM} docker.io/library/rust:${RUSTC_VERSION}-${DEBIA
+ ARG CARGO_AUDITABLE_VERSION
+ ARG RUSTC_VERSION
+
++# Build knobs (override via `docker build --build-arg ...`)
++#
++# This workspace's release profile enables fat LTO + codegen-units=1, which can
++# spike peak RAM usage significantly. For local/dev builds we default to less
++# memory-hungry settings (the wrapper script sets these args).
++ARG CARGO_BUILD_JOBS=2
++ARG CARGO_PROFILE_RELEASE_LTO=false
++ARG CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16
++
++# Which Rust targets to build, space-separated. Upstream builds both to produce
++# a multi-arch image; local builds can set this to just the host target.
++ARG MAS_BUILD_TARGETS="x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu"
++
++ENV \
++  CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS}" \
++  CARGO_PROFILE_RELEASE_LTO="${CARGO_PROFILE_RELEASE_LTO}" \
++  CARGO_PROFILE_RELEASE_CODEGEN_UNITS="${CARGO_PROFILE_RELEASE_CODEGEN_UNITS}" \
++  MAS_BUILD_TARGETS="${MAS_BUILD_TARGETS}"
++
+ # Install pinned versions of cargo-auditable
+ # Network access: to fetch dependencies
+ RUN --network=default \
+@@ -121,16 +140,27 @@ ENV VERGEN_GIT_DESCRIBE=${VERGEN_GIT_DESCRIBE}
+ RUN --network=default \
+   --mount=type=cache,target=/root/.cargo/registry \
+   --mount=type=cache,target=/app/target \
+-  cargo auditable build \
+-    --locked \
+-    --release \
+-    --bin mas-cli \
+-    --no-default-features \
+-    --features docker \
+-    --target x86_64-unknown-linux-gnu \
+-    --target aarch64-unknown-linux-gnu \
+-  && mv "target/x86_64-unknown-linux-gnu/release/mas-cli" /usr/local/bin/mas-cli-amd64 \
+-  && mv "target/aarch64-unknown-linux-gnu/release/mas-cli" /usr/local/bin/mas-cli-arm64
++  bash -euo pipefail -c '\
++    targets="${MAS_BUILD_TARGETS}"; \
++    cargo_args=(); \
++    for t in ${targets}; do cargo_args+=(--target "${t}"); done; \
++    cargo auditable build \
++      --locked \
++      --release \
++      --bin mas-cli \
++      --no-default-features \
++      --features docker \
++      --jobs "${CARGO_BUILD_JOBS}" \
++      "${cargo_args[@]}"; \
++    for t in ${targets}; do \
++      case "${t}" in \
++        x86_64-unknown-linux-gnu) out="/usr/local/bin/mas-cli-amd64" ;; \
++        aarch64-unknown-linux-gnu) out="/usr/local/bin/mas-cli-arm64" ;; \
++        *) echo "Unsupported target in MAS_BUILD_TARGETS: ${t}" >&2; exit 2 ;; \
++      esac; \
++      mv "target/${t}/release/mas-cli" "${out}"; \
++    done \
++  '
+
+ #######################################
+ ## Prepare /usr/local/share/mas-cli/ ##
+

@@ -1,19 +1,80 @@
 #@ssh host=root.aiemotion.net
 
+#@group "MAS Dockerfile patch"
+
+#@step "Apply MAS Dockerfile resource patch"
+#@env MAS_REPO_DIR=/etc/chat/mas/repo
+#@env MAS_DOCKERFILE_PATCH=/etc/chat/mas/patches/patch-dockerfile.patch
+. ".playbook/lib/base.sh"
+
+need git || exit 1
+
+mas_repo_dir="${MAS_REPO_DIR}"
+mas_patch_path="${MAS_DOCKERFILE_PATCH}"
+
+mas_repo_dir="${mas_repo_dir#./}"
+mas_patch_path="${mas_patch_path#./}"
+
+if [ -d "${MAS_REPO_DIR}" ]; then
+  mas_repo_dir="${MAS_REPO_DIR}"
+elif [ -d "/etc/control/${mas_repo_dir}" ]; then
+  mas_repo_dir="/etc/control/${mas_repo_dir}"
+fi
+
+if [ -f "${MAS_DOCKERFILE_PATCH}" ]; then
+  mas_patch_path="${MAS_DOCKERFILE_PATCH}"
+elif [ -f "/etc/control/${mas_patch_path}" ]; then
+  mas_patch_path="/etc/control/${mas_patch_path}"
+fi
+
+if [ ! -d "${mas_repo_dir}" ]; then
+  echo "MAS repo directory not found: ${MAS_REPO_DIR}" >&2
+  exit 1
+fi
+
+if [ ! -f "${mas_patch_path}" ]; then
+  echo "MAS patch file not found: ${MAS_DOCKERFILE_PATCH}" >&2
+  exit 1
+fi
+
+if git -C "${mas_repo_dir}" apply --reverse --check "${mas_patch_path}" >/dev/null 2>&1; then
+  echo "MAS Dockerfile patch already applied: ${mas_patch_path}"
+else
+  git -C "${mas_repo_dir}" apply "${mas_patch_path}"
+  echo "Applied MAS Dockerfile patch: ${mas_patch_path}"
+fi
+
+#@group "MAS keys"
+
+#@step "Generate MAS encryption secret"
+#@env MAS_KEYS_DIR=/etc/chat/mas/keys
+#@env MAS_ENCRYPTION_SECRET_FILENAME=mas-encryption.hex
+. ".playbook/lib/mas.sh"
+
+mas_generate_secret_if_missing "${MAS_KEYS_DIR}" "${MAS_ENCRYPTION_SECRET_FILENAME}"
+
+#@step "Generate MAS OIDC signing keys"
+#@env MAS_KEYS_DIR=/etc/chat/mas/keys
+#@env MAS_CONFIG_PATH=/etc/chat/mas/config.yaml
+#@env MAS_IMAGE=ghcr.io/element-hq/matrix-authentication-service:latest
+. ".playbook/lib/mas.sh"
+
+mas_generate_oidc_signing_keys "${MAS_KEYS_DIR}" "${MAS_CONFIG_PATH}" "${MAS_IMAGE}"
+
 #@group "Route53 DNS for matrix-auth.aiemotion.net"
 
-#@step "Register matrix-auth.aiemotion.net CNAME record"
+#@step "Register matrix-auth.aiemotion.net A record"
 #@env AWS_PROFILE=s3-cloudfront-admin
 #@env AWS_REGION=us-east-1
 #@env ROUTE53_HOSTED_ZONE_ID=Z04463842QPY69QYWA7RY
 #@env ROUTE53_TTL=300
 #@env MATRIX_AUTH_DOMAIN=matrix-auth.aiemotion.net
-#@env MATRIX_AUTH_TARGET_DOMAIN=root.aiemotion.net
+#@env MATRIX_AUTH_IPV4=157.180.4.111
 . ".playbook/lib/chat.sh"
 init_aws_cmd
 
 matrix_auth_domain="${MATRIX_AUTH_DOMAIN}"
-matrix_auth_target_domain="${MATRIX_AUTH_TARGET_DOMAIN%.}."
+matrix_auth_ipv4="${MATRIX_AUTH_IPV4}"
 route53_zone_id="${ROUTE53_HOSTED_ZONE_ID}"
 route53_ttl="${ROUTE53_TTL}"
 
@@ -25,26 +86,29 @@ trap cleanup EXIT
 
 cat >"${tmp_change_batch}" <<EOF
 {
-  "Comment": "UPSERT CNAME ${matrix_auth_domain} -> ${matrix_auth_target_domain}",
+  "Comment": "UPSERT A ${matrix_auth_domain} -> ${matrix_auth_ipv4}",
   "Changes": [
     {
       "Action": "UPSERT",
       "ResourceRecordSet": {
         "Name": "${matrix_auth_domain%.}.",
-        "Type": "CNAME",
+        "Type": "A",
         "TTL": ${route53_ttl},
-        "ResourceRecords": [{ "Value": "${matrix_auth_target_domain}" }]
+        "ResourceRecords": [{ "Value": "${matrix_auth_ipv4}" }]
       }
     }
   ]
 }
 EOF
 
-"${CHAT_AWS_CMD[@]}" route53 change-resource-record-sets \
+if ! "${CHAT_AWS_CMD[@]}" route53 change-resource-record-sets \
   --hosted-zone-id "${route53_zone_id}" \
-  --change-batch "file://${tmp_change_batch}" >/dev/null
+  --change-batch "file://${tmp_change_batch}" >/dev/null; then
+  log_error "Failed to register A record ${matrix_auth_domain} -> ${matrix_auth_ipv4}"
+  exit 1
+fi
 
-log_ok "Route53 record registered: ${matrix_auth_domain} -> ${matrix_auth_target_domain}"
+log_ok "Route53 record registered: ${matrix_auth_domain} -> ${matrix_auth_ipv4}"
 
 #@group "Nginx + Let's Encrypt for matrix-auth.aiemotion.net"
 
@@ -101,10 +165,6 @@ apt-get update -y
 apt-get install -y certbot
 certbot --version
 
-#@step "Enable and start certbot.timer for automatic renewal"
-systemctl enable --now certbot.timer
-systemctl status certbot.timer --no-pager
-
 #@step "Issue/Renew Let's Encrypt certificate for matrix-auth.aiemotion.net"
 certbot certonly --webroot \
   -w "${CERTBOT_WEBROOT}" \
@@ -118,6 +178,10 @@ if [ ! -s "/etc/letsencrypt/live/${MATRIX_AUTH_DOMAIN}/fullchain.pem" ] || [ ! -
   echo "Let's Encrypt certificate files not found for ${MATRIX_AUTH_DOMAIN}."
   exit 1
 fi
+
+#@step "Enable and start certbot.timer for automatic renewal"
+systemctl enable --now certbot.timer
+systemctl status certbot.timer --no-pager
 
 #@step "Ensure recommended Let's Encrypt SSL options files exist"
 if [ ! -f /etc/letsencrypt/options-ssl-nginx.conf ]; then
@@ -155,23 +219,20 @@ certbot renew --dry-run
 
 #@step "Verify matrix-auth.aiemotion.net DNS resolution"
 #@env MATRIX_AUTH_DOMAIN=matrix-auth.aiemotion.net
-#@env MATRIX_AUTH_TARGET_DOMAIN=root.aiemotion.net
+#@env MATRIX_AUTH_IPV4=157.180.4.111
 domain="${MATRIX_AUTH_DOMAIN}"
-expected_target="${MATRIX_AUTH_TARGET_DOMAIN%.}"
+expected_ipv4="${MATRIX_AUTH_IPV4}"
 
-resolved_cname="$(dig +short "${domain}" CNAME | sed -n '$p' | sed 's/\.$//')"
-if [ -n "${resolved_cname}" ]; then
-  echo "Resolved CNAME: ${resolved_cname}"
-  if [ "${resolved_cname}" != "${expected_target}" ]; then
-    log_error "Unexpected CNAME target. Expected ${expected_target}, got ${resolved_cname}"
-    exit 1
-  fi
-  log_ok "CNAME target matches expected value"
-else
-  echo "No CNAME returned for ${domain}; checking A/AAAA records instead."
-  dig +short "${domain}" A
-  dig +short "${domain}" AAAA
+resolved_a="$(dig +short "${domain}" A | tr -d '\r')"
+echo "Resolved A records:"
+printf '%s\n' "${resolved_a}"
+
+if ! printf '%s\n' "${resolved_a}" | grep -Fx -- "${expected_ipv4}" >/dev/null 2>&1; then
+  echo "A record mismatch for ${domain}. Expected to include ${expected_ipv4}" >&2
+  exit 1
 fi
+
+echo "A record contains expected value: ${expected_ipv4}"
 
 #@step "Verify OIDC discovery endpoint and issuer"
 #@env MATRIX_AUTH_DOMAIN=matrix-auth.aiemotion.net
@@ -183,16 +244,16 @@ response="$(curl -fsS --max-time 20 "${discovery_url}")"
 issuer="$(printf '%s' "${response}" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("issuer",""))')"
 
 if [ -z "${issuer}" ]; then
-  log_error "No issuer field found in discovery response from ${discovery_url}"
+  echo "No issuer field found in discovery response from ${discovery_url}" >&2
   exit 1
 fi
 
 if [ "${issuer}" != "${expected_issuer}" ]; then
-  log_error "Issuer mismatch. Expected ${expected_issuer}, got ${issuer}"
+  echo "Issuer mismatch. Expected ${expected_issuer}, got ${issuer}" >&2
   exit 1
 fi
 
-log_ok "OIDC issuer verified: ${issuer}"
+echo "OIDC issuer verified: ${issuer}"
 echo "Discovery URL: ${discovery_url}"
 
 #@step "Show TLS certificate summary for matrix-auth.aiemotion.net"
