@@ -153,3 +153,21 @@ chmod 640 "${new_key_host_path}"
 echo "Wrote new signing key: ${new_key_host_path}"
 echo "New signing key path: ${new_key_config_path}"
 echo "Generated key id: ${key_id}"
+
+#@group "Synapse storage provider"
+
+#@step "Install Synapse S3 storage provider in running container"
+#@env SYNAPSE_CONTAINER=synapse
+#@env SYNAPSE_S3_PROVIDER_PATH=/opt/synapse-s3-storage-provider
+set -euo pipefail
+
+container_name="${SYNAPSE_CONTAINER}"
+provider_path="${SYNAPSE_S3_PROVIDER_PATH}"
+
+if ! docker ps --format '{{.Names}}' | grep -Fxq "${container_name}"; then
+  echo "Container '${container_name}' is not running. Start Synapse first."
+  exit 1
+fi
+
+docker exec "${container_name}" python3 -m pip install "${provider_path}"
+echo "Installed Synapse S3 storage provider from ${provider_path} in ${container_name}"

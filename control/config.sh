@@ -84,8 +84,10 @@ declare -A run_args=(
     --mount type=bind,src=$SRC_DIR/chat/synapse,dst=/data \
     -v=$SRC_DIR/chat/synapse/keys:/data/keys \
     -v=/etc/chat/synapse/s3provider/repo:/opt/synapse-s3-storage-provider \
+    --entrypoint /bin/bash \
     -p 127.0.0.1:8008:8008 \
-    ${images[synapse]}"
+    ${images[synapse]} \
+    -lc \"python3 -m pip install /opt/synapse-s3-storage-provider && exec python3 /start.py\""
   [vaultwarden]="-d --name ${containers[vaultwarden]} \
     --restart unless-stopped \
     --env DOMAIN=\"${VAULTWARDEN_DOMAIN}\" \
