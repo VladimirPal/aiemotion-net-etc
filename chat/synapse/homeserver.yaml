@@ -1,5 +1,5 @@
-server_name: "chat.aiemotion.net"
-public_baseurl: https://chat.aiemotion.net/
+server_name: "aiemotion.net"
+public_baseurl: https://aiemotion.net/
 pid_file: /data/homeserver.pid
 suppress_key_server_warning: true
 allow_public_rooms_without_auth: true
@@ -74,7 +74,7 @@ media_storage_providers:
       bucket: "chat-aiemotion-net"
       # All of the below options are optional, for use with non-AWS S3-like
       # services, or to specify access tokens here instead of some external method.
-      region_name: "eu-east-1"
+      region_name: "us-east-1"
       # Credentials are loaded from AWS credential provider chain
       # (AWS_SHARED_CREDENTIALS_FILE/AWS_PROFILE configured at container runtime).
 

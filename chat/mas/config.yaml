@@ -72,6 +72,8 @@ passwords:
     - version: 1
       algorithm: argon2id
   minimum_complexity: 3
+account:
+  account_deactivation_allowed: false
 matrix:
   kind: synapse
   homeserver: aiemotion.net
