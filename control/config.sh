@@ -43,10 +43,11 @@ declare -A services=(
   ["element-web-builder"]="true"
   ["postgresql-chat"]="true"
   [synapse]="true"
+  [mas]="true"
 )
 
 declare -A service_groups=(
-  [chat]="synapse"
+  [chat]="synapse mas"
 )
 
 declare -A containers=(
@@ -56,6 +57,7 @@ declare -A containers=(
   ["element-web-builder"]="element-web-builder"
   ["postgresql-chat"]="postgresql-chat"
   [synapse]="synapse"
+  [mas]="mas"
 )
 
 declare -A images=(
@@ -66,6 +68,7 @@ declare -A images=(
   ["element-web-builder"]="it-pal/element-web-builder:latest"
   ["postgresql-chat"]="postgres:18-alpine"
   [synapse]="it-pal/synapse:latest"
+  [mas]="it-pal/mas:latest"
 )
 
 declare -A run_args=(
@@ -88,6 +91,15 @@ declare -A run_args=(
     -p 127.0.0.1:8008:8008 \
     ${images[synapse]} \
     -lc \"python3 -m pip install /opt/synapse-s3-storage-provider && exec python3 /start.py\""
+  [mas]="-d --name ${containers[mas]} \
+    --network $CHAT_NETWORK \
+    --restart unless-stopped \
+    -v=$SRC_DIR/mas/ssh/id_rsa.pub:/tmp/authorized_keys \
+    -v=$SRC_DIR/mas/config.yaml:/config.yaml \
+    -v=$SRC_DIR/mas/enc_key.pem:/enc_key.pem \
+    -v=$SRC_DIR/mas/keys:/keys \
+    -p 127.0.0.1:8080:8080 -p 127.0.0.1:8081:8081 \
+    ${images[mas]}"
   [vaultwarden]="-d --name ${containers[vaultwarden]} \
     --restart unless-stopped \
     --env DOMAIN=\"${VAULTWARDEN_DOMAIN}\" \
@@ -126,6 +138,7 @@ declare -A backup_services=(
   [authentik]="monthly:90"
   [mailserver]="weekly:30"
   [synapse]="weekly:30"
+  [mas]="weekly:30"
 )
 
 declare -A backup_s3_root=(
@@ -145,12 +158,14 @@ declare -A services_path=(
 
 declare -A dependencies=(
   [synapse]="postgresql-chat"
+  [mas]="postgresql-chat synapse"
 )
 
 declare -a start_order=(
   "authentik"
   "postgresql-chat"
   "synapse"
+  "mas"
   "mailserver"
   "vaultwarden"
   "webhook"
@@ -160,6 +175,7 @@ declare -a stop_order=(
   "mailserver"
   "vaultwarden"
   "webhook"
+  "mas"
   "synapse"
   "postgresql-chat"
 )
@@ -170,6 +186,7 @@ declare -A github_repos=(
   ["docusaurus-builder"]="facebook docusaurus main"
   ["element-web-builder"]="element-hq element-web develop"
   [synapse]="element-hq synapse develop"
+  [mas]="element-hq matrix-authentication-service main"
 )
 
 declare -A skip_tags_releases=(
@@ -180,6 +197,7 @@ declare -A repos_path=(
   [mailserver]="/etc/mailserver/repo"
   ["element-web-builder"]="/etc/chat/element-web/repo"
   [synapse]="/etc/chat/synapse/repo"
+  [mas]="/etc/chat/mas/repo"
 )
 
 declare -A build_contexts=(
@@ -189,9 +207,11 @@ declare -A build_contexts=(
   ["element-web-builder"]="/etc/chat/element-web/repo"
   ["postgresql-chat"]="/etc/chat/postgresql"
   [synapse]="/etc/chat/synapse/repo"
+  [mas]="/etc/chat/mas/repo"
 )
 
 declare -A build_args=(
+  [mas]="--ulimit memlock=8388608:8388608 --ulimit nofile=524288:524288"
 )
 
 declare -A dockerfiles=(
@@ -200,6 +220,8 @@ declare -A dockerfiles=(
   ["docusaurus-builder"]="/etc/docusaurus/Dockerfile"
   ["element-web-builder"]="/etc/chat/element-web/Dockerfile"
   ["postgresql-chat"]="/etc/chat/postgresql/Dockerfile"
+  [synapse]="/etc/chat/synapse/Dockerfile"
+  [mas]="/etc/chat/mas/Dockerfile"
 )
 
 declare -A use_buildkit=(
@@ -209,6 +231,7 @@ declare -A use_buildkit=(
   ["element-web-builder"]="true"
   ["postgresql-chat"]="true"
   [synapse]="true"
+  [mas]="true"
 )
 
 # S3 Backup Configuration

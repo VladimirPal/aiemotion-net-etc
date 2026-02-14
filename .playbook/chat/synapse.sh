@@ -100,13 +100,11 @@ generate_if_missing "${keys_dir}/synapse-mas-secret.txt"
 
 #@group "Synapse signing key"
 
-#@step "Regenerate Synapse signing key"
+#@step "Generate Synapse signing key"
 #@env SYNAPSE_KEYS_DIR=/etc/chat/synapse/keys
 #@env SYNAPSE_SIGNING_KEY_FILENAME=synapse-signing.key
 #@env SYNAPSE_CONTAINER=synapse
 #@env SYNAPSE_IMAGE=matrixdotorg/synapse:latest
-set -euo pipefail
-
 keys_dir="${SYNAPSE_KEYS_DIR}"
 signing_key_filename="${SYNAPSE_SIGNING_KEY_FILENAME}"
 container_name="${SYNAPSE_CONTAINER-}"
@@ -125,7 +123,7 @@ if docker exec "${container_name}" python3 -m synapse._scripts.generate_signing_
   docker exec "${container_name}" rm -f /tmp/new_signing.key >/dev/null 2>&1 || true
 else
   echo "Container exec failed. Falling back to image: ${synapse_image}" >&2
-  docker run --rm "${synapse_image}" python3 -m synapse._scripts.generate_signing_key -o - >"${new_key_file}"
+  docker run --rm --entrypoint python3 "${synapse_image}" -m synapse._scripts.generate_signing_key -o - >"${new_key_file}"
 fi
 
 if [ ! -s "${new_key_file}" ]; then
@@ -159,8 +157,6 @@ echo "Generated key id: ${key_id}"
 #@step "Install Synapse S3 storage provider in running container"
 #@env SYNAPSE_CONTAINER=synapse
 #@env SYNAPSE_S3_PROVIDER_PATH=/opt/synapse-s3-storage-provider
-set -euo pipefail
-
 container_name="${SYNAPSE_CONTAINER}"
 provider_path="${SYNAPSE_S3_PROVIDER_PATH}"
 
