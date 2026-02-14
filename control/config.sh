@@ -123,9 +123,11 @@ declare -A run_args=(
 declare -A backup_services=(
   [authentik]="monthly:90"
   [mailserver]="weekly:30"
+  [synapse]="weekly:30"
 )
 
 declare -A backup_s3_root=(
+  [mailserver]="mail.aiemotion.net"
 )
 
 declare -A services_path=(
@@ -136,14 +138,17 @@ declare -A services_path=(
   ["docusaurus-builder"]="/etc/docusaurus"
   ["element-web-builder"]="/etc/chat/element-web"
   ["postgresql-chat"]="/etc/chat/postgresql"
+  [synapse]="/etc/chat/synapse"
 )
 
 declare -A dependencies=(
+  [synapse]="postgresql-chat"
 )
 
 declare -a start_order=(
   "authentik"
   "postgresql-chat"
+  "synapse"
   "mailserver"
   "vaultwarden"
   "webhook"
@@ -153,6 +158,7 @@ declare -a stop_order=(
   "mailserver"
   "vaultwarden"
   "webhook"
+  "synapse"
   "postgresql-chat"
 )
 
@@ -161,6 +167,7 @@ declare -A github_repos=(
   [mailserver]="docker-mailserver docker-mailserver master"
   ["docusaurus-builder"]="facebook docusaurus main"
   ["element-web-builder"]="element-hq element-web develop"
+  [synapse]="element-hq synapse develop"
 )
 
 declare -A skip_tags_releases=(
@@ -170,6 +177,7 @@ declare -A repos_path=(
   [webhook]="/etc/webhook/repo"
   [mailserver]="/etc/mailserver/repo"
   ["element-web-builder"]="/etc/chat/element-web/repo"
+  [synapse]="/etc/chat/synapse/repo"
 )
 
 declare -A build_contexts=(
@@ -178,6 +186,7 @@ declare -A build_contexts=(
   ["docusaurus-builder"]="/etc/docusaurus"
   ["element-web-builder"]="/etc/chat/element-web/repo"
   ["postgresql-chat"]="/etc/chat/postgresql"
+  [synapse]="/etc/chat/synapse/repo"
 )
 
 declare -A build_args=(
@@ -197,6 +206,7 @@ declare -A use_buildkit=(
   ["docusaurus-builder"]="true"
   ["element-web-builder"]="true"
   ["postgresql-chat"]="true"
+  [synapse]="true"
 )
 
 # S3 Backup Configuration
