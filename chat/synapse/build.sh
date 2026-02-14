@@ -1,7 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$SCRIPT_DIR/repo"
-DOCKERFILE_ORIGINAL="$REPO_DIR/docker/Dockerfile"
+DOCKERFILE_ORIGINAL="$REPO_DIR/Dockerfile"
 DOCKERFILE_EXTENDED="$SCRIPT_DIR/Dockerfile"
 
 IMAGE_NAME="${1:-it-pal/synapse:latest}"
