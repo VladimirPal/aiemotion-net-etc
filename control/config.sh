@@ -6,6 +6,13 @@ USER_GID="${USER_GID:-$(id -g)}"
 USER_UID=$(id -u)
 DOCKER_GROUP="$(getent group docker | cut -d: -f3)"
 
+SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CHAT_NETWORK="chat"
+
+POSTGRES_SYNAPSE_USER="synapse_user"
+POSTGRES_SYNAPSE_PASSWORD="synapse_password"
+POSTGRES_SYNAPSE_DB="synapse"
+
 VAULTWARDEN_DOMAIN="https://vault.aiemotion.net"
 VAULTWARDEN_DATA_PATH="/vw-data"
 VAULTWARDEN_PORT="8000"
@@ -34,9 +41,12 @@ declare -A services=(
   [vaultwarden]="true"
   ["docusaurus-builder"]="true"
   ["element-web-builder"]="true"
+  ["postgresql-chat"]="true"
+  [synapse]="true"
 )
 
 declare -A service_groups=(
+  [chat]="synapse"
 )
 
 declare -A containers=(
@@ -44,6 +54,8 @@ declare -A containers=(
   [vaultwarden]="vaultwarden"
   ["docusaurus-builder"]="docusaurus-builder"
   ["element-web-builder"]="element-web-builder"
+  ["postgresql-chat"]="postgresql-chat"
+  [synapse]="synapse"
 )
 
 declare -A images=(
@@ -52,6 +64,8 @@ declare -A images=(
   [vaultwarden]="vaultwarden/server:latest"
   ["docusaurus-builder"]="it-pal/docusaurus-builder:latest"
   ["element-web-builder"]="it-pal/element-web-builder:latest"
+  ["postgresql-chat"]="postgres:18-alpine"
+  [synapse]="it-pal/synapse:latest"
 )
 
 declare -A run_args=(
@@ -62,6 +76,16 @@ declare -A run_args=(
     -p 127.0.0.1:9040:9000 \
     ${images[webhook]} \
     -verbose -debug -hooks=/etc/webhook/hooks.json -port 9000"
+  [synapse]="-d --name ${containers[synapse]} \
+    --network $CHAT_NETWORK \
+    --restart unless-stopped \
+    -e AWS_SHARED_CREDENTIALS_FILE=/data/.aws-credentials \
+    -e AWS_PROFILE=synapse-media \
+    --mount type=bind,src=$SRC_DIR/chat/synapse,dst=/data \
+    -v=$SRC_DIR/chat/synapse/keys:/data/keys \
+    -v=/etc/chat/synapse/s3provider/repo:/opt/synapse-s3-storage-provider \
+    -p 127.0.0.1:8008:8008 \
+    ${images[synapse]}"
   [vaultwarden]="-d --name ${containers[vaultwarden]} \
     --restart unless-stopped \
     --env DOMAIN=\"${VAULTWARDEN_DOMAIN}\" \
@@ -79,6 +103,18 @@ declare -A run_args=(
     --volume ${VAULTWARDEN_DATA_PATH}:/data/ \
     --publish 127.0.0.1:${VAULTWARDEN_PORT}:80 \
     ${images[vaultwarden]}"
+  ["postgresql-chat"]="-d --name ${containers["postgresql-chat"]} \
+    --network $CHAT_NETWORK \
+    --restart unless-stopped \
+    -v=postgresql-chat-data:/var/lib/postgresql/data \
+    -e POSTGRES_USER=$POSTGRES_SYNAPSE_USER \
+    -e POSTGRES_PASSWORD=$POSTGRES_SYNAPSE_PASSWORD \
+    -e POSTGRES_DB=$POSTGRES_SYNAPSE_DB \
+    -e POSTGRES_INITDB_ARGS=--encoding=UTF8 \
+    -e POSTGRES_INITDB_ARGS=--locale=C \
+    -e LC_COLLATE=C \
+    -e LC_CTYPE=C \
+    ${images["postgresql-chat"]}"
   ["docusaurus-builder"]="$DOCUSAURUS_ARGS \
     \${images["docusaurus-builder"]} \
     bash -c \"npm install && npm run build\""
@@ -99,6 +135,7 @@ declare -A services_path=(
   [vaultwarden]="/etc/vaultwarden"
   ["docusaurus-builder"]="/etc/docusaurus"
   ["element-web-builder"]="/etc/chat/element-web"
+  ["postgresql-chat"]="/etc/chat/postgresql"
 )
 
 declare -A dependencies=(
@@ -106,6 +143,7 @@ declare -A dependencies=(
 
 declare -a start_order=(
   "authentik"
+  "postgresql-chat"
   "mailserver"
   "vaultwarden"
   "webhook"
@@ -115,6 +153,7 @@ declare -a stop_order=(
   "mailserver"
   "vaultwarden"
   "webhook"
+  "postgresql-chat"
 )
 
 declare -A github_repos=(
@@ -138,6 +177,7 @@ declare -A build_contexts=(
   [mailserver]="/etc/mailserver/repo"
   ["docusaurus-builder"]="/etc/docusaurus"
   ["element-web-builder"]="/etc/chat/element-web/repo"
+  ["postgresql-chat"]="/etc/chat/postgresql"
 )
 
 declare -A build_args=(
@@ -148,6 +188,7 @@ declare -A dockerfiles=(
   [mailserver]="/etc/mailserver/repo/Dockerfile"
   ["docusaurus-builder"]="/etc/docusaurus/Dockerfile"
   ["element-web-builder"]="/etc/chat/element-web/Dockerfile"
+  ["postgresql-chat"]="/etc/chat/postgresql/Dockerfile"
 )
 
 declare -A use_buildkit=(
@@ -155,9 +196,19 @@ declare -A use_buildkit=(
   [mailserver]="true"
   ["docusaurus-builder"]="true"
   ["element-web-builder"]="true"
+  ["postgresql-chat"]="true"
 )
 
 # S3 Backup Configuration
 BACKUP_S3_BUCKET="aiemotion-backup"
 BACKUP_S3_REGION="ap-southeast-1"
 BACKUP_AWS_PROFILE="aiemotion-backup"
+
+create_network() {
+  if ! docker network ls | grep -q "$CHAT_NETWORK"; then
+    echo "🌐 Creating Docker network $CHAT_NETWORK..."
+    docker network create "$CHAT_NETWORK"
+  fi
+}
+
+create_network

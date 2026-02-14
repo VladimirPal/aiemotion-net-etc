@@ -55,7 +55,7 @@ fi
 cmd_init
 
 #@step "Initialize a specific chat submodule"
-#@env CHAT_SUBMODULE_TARGET=element-web
+#@env CHAT_SUBMODULE_TARGET=synapse-s3provider
 #@env CHAT_SUBMODULE_DEPTH=1
 . ".playbook/lib/submodules.sh"
 
@@ -69,7 +69,7 @@ cmd_init
 cmd_deinit
 
 #@step "Deinitialize a specific chat submodule"
-#@env CHAT_SUBMODULE_TARGET=synapse
+#@env CHAT_SUBMODULE_TARGET=synapse-s3provider
 . ".playbook/lib/submodules.sh"
 
 cmd_deinit
@@ -96,7 +96,7 @@ cmd_check_updates
 cmd_update
 
 #@step "Update a specific chat submodule to latest"
-#@env CHAT_SUBMODULE_TARGET=mas
+#@env CHAT_SUBMODULE_TARGET=synapse-s3provider
 . ".playbook/lib/submodules.sh"
 
 cmd_update

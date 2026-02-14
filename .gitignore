@@ -44,6 +44,8 @@ authentik/.env
 !chat/
 !chat/**
 chat/element-web/.aws-credentials
+chat/synapse/.aws-credentials
+chat/element-web/webapp
 chat/synapse/media_store
 chat/postgresql/postgres_data
 chat/*/backups

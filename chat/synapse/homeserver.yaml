@@ -1,0 +1,167 @@
+server_name: "chat.aiemotion.net"
+public_baseurl: https://chat.aiemotion.net/
+pid_file: /data/homeserver.pid
+suppress_key_server_warning: true
+allow_public_rooms_without_auth: true
+allow_public_rooms_over_federation: true
+cors_allowed_origins:
+  - "https://element.chat.aiemotion.net"
+  - "https://element.aiemotion.net"
+  - "https://chat.aiemotion.net"
+  - "https://aiemotion.net"
+cors_allow_credentials: true
+presence:
+  enabled: true
+  include_offline_users_on_sync: true
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+database:
+  name: psycopg2
+  args:
+    user: synapse_user
+    password: synapse_password
+    database: synapse
+    host: postgresql-chat
+    port: 5432
+password_config:
+  enabled: false
+
+# Dehydrated devices configuration (MSC2697)
+dehydrated_devices:
+  enabled: true # Enable for Hydrogen View SDK compatibility
+
+matrix_authentication_service:
+  enabled: true
+  endpoint: "https://matrix-auth.aiemotion.net"
+  secret_path: "/data/keys/synapse-mas-secret.txt"
+sso:
+  client_whitelist:
+    - https://aiemotion.net
+    - https://chat.aiemotion.net
+    - https://element.aiemotion.net
+enable_registration: false
+log_config: "/data/synapse.log.config"
+media_store_path: /data/media_store
+registration_shared_secret_path: "/data/keys/synapse-registration-secret.txt"
+report_stats: false
+macaroon_secret_key_path: "/data/keys/synapse-macaroon-secret.txt"
+form_secret_path: "/data/keys/synapse-form-secret.txt"
+signing_key_path: "/data/keys/synapse-signing.key"
+trusted_key_servers:
+  - server_name: "matrix.org"
+allow_device_name_lookup_over_federation: false
+
+# Experimental features configuration
+experimental_features:
+  msc2697_enabled: true # Enable dehydrated devices MSC2697
+  msc3202_enabled: true # Enable device dehydration MSC3202
+
+max_pending_media_uploads: 20
+max_upload_size: 1G
+dynamic_thumbnails: true
+media_storage_providers:
+  - module: s3_storage_provider.S3StorageProviderBackend
+    store_local: True
+    store_remote: True
+    store_synchronous: True
+    config:
+      bucket: "chat-aiemotion-net"
+      # All of the below options are optional, for use with non-AWS S3-like
+      # services, or to specify access tokens here instead of some external method.
+      region_name: "eu-east-1"
+      # Credentials are loaded from AWS credential provider chain
+      # (AWS_SHARED_CREDENTIALS_FILE/AWS_PROFILE configured at container runtime).
+
+      # Server Side Encryption for Customer-provided keys
+      #sse_customer_key: <S3_SSEC_KEY>
+      # Your SSE-C algorithm is very likely AES256
+      # Default is AES256.
+      #sse_customer_algo: <S3_SSEC_ALGO>
+
+      # The object storage class used when uploading files to the bucket.
+      # Default is STANDARD.
+      #storage_class: "STANDARD_IA"
+
+      # Prefix for all media in bucket, can't be changed once media has been uploaded
+      # Useful if sharing the bucket between Synapses
+      # Blank if not provided
+      prefix: "synapse/"
+
+      # The maximum number of concurrent threads which will be used to connect
+      # to S3. Each thread manages a single connection. Default is 40.
+      #
+      #threadpool_size: 20
+
+federation:
+  client_timeout: 15s
+  max_short_retry_delay: 7s
+  max_long_retry_delay: 100s
+  max_short_retries: 5
+  max_long_retries: 20
+  destination_min_retry_interval: 30s
+  destination_retry_multiplier: 5
+  destination_max_retry_interval: 12h
+federation_domain_whitelist:
+  - chat.aiemotion.net
+  - element.aiemotion.net
+  - aiemotion.net
+
+# Trust forwarded headers from nginx
+trusted_forwarded_proxies:
+  - 172.16.0.0/12 # Docker networks
+  - 127.0.0.0/8 # Localhost
+
+rc_room_creation:
+  per_second: 100
+  burst_count: 10
+
+rc_invites:
+  per_room:
+    per_second: 100
+    burst_count: 10
+  per_user:
+    per_second: 100
+    burst_count: 10
+  per_issuer:
+    per_second: 100
+    burst_count: 10
+
+rc_joins:
+  local:
+    per_second: 100
+    burst_count: 10
+  remote:
+    per_second: 0.03
+    burst_count: 12.0
+
+rc_login:
+  address:
+    per_second: 100
+    burst_count: 10
+  account:
+    per_second: 100
+    burst_count: 10
+  failed_attempts:
+    per_second: 10
+    burst_count: 10
+
+rc_admin_redaction:
+  per_second: 20
+  burst_count: 50
+
+retention:
+  enabled: true
+  allowed_lifetime_min: 1m
+  allowed_lifetime_max: 365d
+  purge_jobs:
+    - interval: 1d
+      longest_max_lifetime: 30d
+    - interval: 30m
+      shortest_max_lifetime: 1h
+# vim:ft=yaml

@@ -98,6 +98,7 @@ cmd_add_submodules() {
   # name|path|branch|url
   local modules=(
     "synapse|chat/synapse/repo|develop|https://github.com/element-hq/synapse.git"
+    "synapse-s3provider|chat/synapse/s3provider/repo|main|git@github.com:matrix-org/synapse-s3-storage-provider.git"
     "mas|chat/mas/repo|main|https://github.com/element-hq/matrix-authentication-service.git"
     "element-web|chat/element-web/repo|develop|https://github.com/element-hq/element-web.git"
   )
