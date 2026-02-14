@@ -84,8 +84,8 @@ declare -A run_args=(
     --restart unless-stopped \
     -e AWS_SHARED_CREDENTIALS_FILE=/data/.aws-credentials \
     -e AWS_PROFILE=synapse-media \
-    --mount type=bind,src=$SRC_DIR/chat/synapse,dst=/data \
-    -v=$SRC_DIR/chat/synapse/keys:/data/keys \
+    --mount type=bind,src=/etc/chat/synapse,dst=/data \
+    -v=/etc/chat/synapse/keys:/data/keys \
     -v=/etc/chat/synapse/s3provider/repo:/opt/synapse-s3-storage-provider \
     --entrypoint /bin/bash \
     -p 127.0.0.1:8008:8008 \
@@ -94,10 +94,10 @@ declare -A run_args=(
   [mas]="-d --name ${containers[mas]} \
     --network $CHAT_NETWORK \
     --restart unless-stopped \
-    -v=$SRC_DIR/mas/ssh/id_rsa.pub:/tmp/authorized_keys \
-    -v=$SRC_DIR/mas/config.yaml:/config.yaml \
-    -v=$SRC_DIR/mas/enc_key.pem:/enc_key.pem \
-    -v=$SRC_DIR/mas/keys:/keys \
+    -v=/etc/chat/mas/ssh/id_rsa.pub:/tmp/authorized_keys \
+    -v=/etc/chat/mas/config.yaml:/config.yaml \
+    -v=/etc/chat/mas/enc_key.pem:/enc_key.pem \
+    -v=/etc/chat/mas/keys:/keys \
     -p 127.0.0.1:8080:8080 -p 127.0.0.1:8081:8081 \
     ${images[mas]}"
   [vaultwarden]="-d --name ${containers[vaultwarden]} \
