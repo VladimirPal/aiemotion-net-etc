@@ -238,8 +238,8 @@ echo "A record contains expected value: ${expected_ipv4}"
 
 #@env SYNAPSE_BASE_DOMAIN=aiemotion.net
 #@env SYNAPSE_BASE_NGINX_CONF=/etc/nginx/conf.d/aiemotion.net.conf
-#@env SYNAPSE_BASE_NGINX_BOOTSTRAP_SOURCE=nginx/bootstrap/aiemotion.net.conf
-#@env SYNAPSE_BASE_NGINX_TLS_SOURCE=nginx/conf.d/aiemotion.net.conf
+#@env SYNAPSE_BASE_NGINX_BOOTSTRAP_SOURCE=/etc/nginx/bootstrap/aiemotion.net.conf
+#@env SYNAPSE_BASE_NGINX_TLS_SOURCE=/etc/nginx/conf.d/aiemotion.net.conf
 #@env LETSENCRYPT_EMAIL=admin@aiemotion.net
 #@env CERTBOT_WEBROOT=/var/www/letsencrypt
 
