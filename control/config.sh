@@ -206,7 +206,6 @@ declare -A build_contexts=(
   [mailserver]="/etc/mailserver/repo"
   ["docusaurus-builder"]="/etc/docusaurus"
   ["element-web-builder"]="/etc/chat/element-web/repo"
-  ["postgresql-chat"]="/etc/chat/postgresql"
   [synapse]="/etc/chat/synapse/repo"
   [mas]="/etc/chat/mas/repo"
 )
@@ -220,7 +219,6 @@ declare -A dockerfiles=(
   [mailserver]="/etc/mailserver/repo/Dockerfile"
   ["docusaurus-builder"]="/etc/docusaurus/Dockerfile"
   ["element-web-builder"]="/etc/chat/element-web/Dockerfile"
-  ["postgresql-chat"]="/etc/chat/postgresql/Dockerfile"
   [synapse]="/etc/chat/synapse/Dockerfile"
   [mas]="/etc/chat/mas/Dockerfile"
 )
@@ -230,7 +228,6 @@ declare -A use_buildkit=(
   [mailserver]="true"
   ["docusaurus-builder"]="true"
   ["element-web-builder"]="true"
-  ["postgresql-chat"]="true"
   [synapse]="true"
   [mas]="true"
 )
