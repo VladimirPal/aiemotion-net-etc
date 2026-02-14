@@ -1,6 +1,4 @@
 #!/bin/bash
-set -euo pipefail
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$SCRIPT_DIR/repo"
 DOCKERFILE_ORIGINAL="$REPO_DIR/docker/Dockerfile"
