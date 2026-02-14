@@ -154,6 +154,7 @@ declare -A services_path=(
   ["element-web-builder"]="/etc/chat/element-web"
   ["postgresql-chat"]="/etc/chat/postgresql"
   [synapse]="/etc/chat/synapse"
+  [mas]="/etc/chat/mas"
 )
 
 declare -A dependencies=(
