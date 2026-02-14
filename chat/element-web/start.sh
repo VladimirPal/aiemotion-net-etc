@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_PATH="/etc/chat/element-web/repo"
 DOCKERFILE_PATH="/etc/chat/element-web/Dockerfile"
-IMAGE_NAME="element-web-builder"
+IMAGE_NAME="it-pal/element-web-builder:latest"
 CONTAINER_NAME="element-web-builder"
 
 if [ "$(id -u)" -ne 0 ]; then

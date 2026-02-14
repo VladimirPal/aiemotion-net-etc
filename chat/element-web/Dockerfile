@@ -14,6 +14,6 @@ COPY . /app
 RUN corepack enable
 
 RUN mkdir -p /app/webapp
-RUN cp /app/config.sample.json /app/webapp/config.json
+RUN if [ -f /app/config.sample.json ]; then cp /app/config.sample.json /app/webapp/config.json; fi
 
 CMD ["bash"]
