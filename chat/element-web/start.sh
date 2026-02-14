@@ -31,11 +31,31 @@ if ! docker ps --filter "name=$CONTAINER_NAME" --format '{{.Names}}' | grep -qx 
 fi
 
 echo "→ Installing dependencies inside container…"
-docker exec "$CONTAINER_NAME" yarn install
+docker exec "$CONTAINER_NAME" bash -lc '
+set -euo pipefail
+
+if [ -f pnpm-lock.yaml ]; then
+  corepack pnpm install --frozen-lockfile
+elif [ -f yarn.lock ]; then
+  corepack yarn install --immutable
+else
+  npm install
+fi
+'
 echo "✓ Dependencies installed"
 
 echo "→ Building the app inside container…"
-docker exec "$CONTAINER_NAME" yarn build
+docker exec "$CONTAINER_NAME" bash -lc '
+set -euo pipefail
+
+if [ -f pnpm-lock.yaml ]; then
+  corepack pnpm build
+elif [ -f yarn.lock ]; then
+  corepack yarn build
+else
+  npm run build
+fi
+'
 echo "✓ Build finished"
 
 echo "→ Stopping builder container…"

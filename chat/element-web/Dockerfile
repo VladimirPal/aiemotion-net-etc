@@ -10,7 +10,8 @@ RUN apk add --no-cache bash jq moreutils git build-base python3 py3-pip
 WORKDIR /app
 
 COPY . /app
-RUN yarn --network-timeout=200000 install
+# Use Corepack-managed package managers (pnpm/yarn) inside the builder container.
+RUN corepack enable
 
 RUN mkdir -p /app/webapp
 RUN cp /app/config.sample.json /app/webapp/config.json
