@@ -1,8 +1,7 @@
 #!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_DIR="$SCRIPT_DIR/repo"
-DOCKERFILE_ORIGINAL="$REPO_DIR/Dockerfile"
-DOCKERFILE_EXTENDED="$SCRIPT_DIR/Dockerfile"
+REPO_DIR="/etc/chat/synapse/repo"
+DOCKERFILE_ORIGINAL="/etc/chat/synapse/repo/Dockerfile"
+DOCKERFILE_EXTENDED="/etc/chat/synapse/Dockerfile"
 
 IMAGE_NAME="${1:-it-pal/synapse:latest}"
 BUILD_CONTEXT="$REPO_DIR"
@@ -18,6 +17,6 @@ echo "Building extended Dockerfile with dev tools..."
 docker build \
   -f "$DOCKERFILE_EXTENDED" \
   -t "$IMAGE_NAME" \
-  "$SCRIPT_DIR"
+  "$REPO_DIR"
 
 echo "Built: $IMAGE_NAME"
