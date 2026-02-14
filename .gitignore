@@ -49,6 +49,7 @@ chat/element-web/.aws-credentials
 chat/synapse/.aws-credentials
 chat/synapse/keys/*
 chat/mas/keys/*
+chat/mas/ssh/*
 chat/element-web/webapp
 chat/synapse/media_store
 chat/postgresql/postgres_data
