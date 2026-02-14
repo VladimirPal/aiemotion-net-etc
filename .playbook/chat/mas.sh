@@ -76,6 +76,9 @@ mas_generate_secret_if_missing "${MAS_KEYS_DIR}" "${MAS_ENCRYPTION_SECRET_FILENA
 
 mas_generate_oidc_signing_keys "${MAS_KEYS_DIR}" "${MAS_CONFIG_PATH}" "${MAS_IMAGE}"
 
+#@step "Sync MAS Config"
+docker exec mas mas-cli config sync --prune -c /config.yaml
+
 #@group "Route53 DNS for matrix-auth.aiemotion.net"
 
 #@step "Register matrix-auth.aiemotion.net A record"

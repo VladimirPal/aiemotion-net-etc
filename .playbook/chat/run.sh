@@ -31,10 +31,7 @@ scs stop all
 #@group "Nginx"
 
 #@step "Restart Nginx"
-scs restart nginx
-
-#@step "Show Nginx Logs"
-scs logs nginx
+systemctl restart nginx
 
 #@group "MAS"
 
