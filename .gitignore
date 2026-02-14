@@ -99,3 +99,11 @@ check_mk/logwatch.state
 DEADJOE
 
 # end section managed by etckeeper
+!chat/
+!chat/**
+chat/synapse/media_store
+chat/postgresql/postgres_data
+chat/*/backups
+chat/mautrix-telegram/*.db
+chat/mautrix-telegram/*.db-shm
+chat/mautrix-telegram/*.db-wal

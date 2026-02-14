@@ -13,3 +13,21 @@
 [submodule "control/docs/memory-alive-docs"]
 	path = control/docs/memory-alive-docs
 	url = git@github-memory-alive-docs:VladimirPal/memory-alive-docs.git
+[submodule "chat/synapse/repo"]
+	path = chat/synapse/repo
+	url = https://github.com/element-hq/synapse.git
+	branch = develop
+[submodule "synapse"]
+	branch = develop
+[submodule "chat/mas/repo"]
+	path = chat/mas/repo
+	url = https://github.com/element-hq/matrix-authentication-service.git
+	branch = main
+[submodule "mas"]
+	branch = main
+[submodule "chat/element-web/repo"]
+	path = chat/element-web/repo
+	url = https://github.com/element-hq/element-web.git
+	branch = develop
+[submodule "element-web"]
+	branch = develop
