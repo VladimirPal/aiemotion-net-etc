@@ -31,3 +31,9 @@
 	branch = develop
 [submodule "element-web"]
 	branch = develop
+[submodule "chat/synapse/s3provider/repo"]
+	path = chat/synapse/s3provider/repo
+	url = git@github.com:matrix-org/synapse-s3-storage-provider.git
+	branch = main
+[submodule "synapse-s3provider"]
+	branch = main
