@@ -9,7 +9,7 @@ DOCKER_GROUP="$(getent group docker | cut -d: -f3)"
 VAULTWARDEN_DOMAIN="https://vault.aiemotion.net"
 VAULTWARDEN_DATA_PATH="/vw-data"
 VAULTWARDEN_PORT="8000"
-VAULTWARDEN_ADMIN_TOKEN_HASH="${VAULTWARDEN_ADMIN_TOKEN_HASH:-}"
+VAULTWARDEN_ADMIN_TOKEN_HASH="${VAULTWARDEN_ADMIN_TOKEN_HASH-}"
 # scs executes docker run via eval; escape '$' so Argon2 PHC survives intact.
 VAULTWARDEN_ADMIN_TOKEN_HASH_ESCAPED="${VAULTWARDEN_ADMIN_TOKEN_HASH//$/\\$}"
 VAULTWARDEN_SSO_ENABLED="${VAULTWARDEN_SSO_ENABLED:-true}"
@@ -20,8 +20,8 @@ AUTHENTIK_DOMAIN="${AUTHENTIK_DOMAIN:-id.aiemotion.net}"
 AUTHENTIK_VAULTWARDEN_APP_SLUG="${AUTHENTIK_VAULTWARDEN_APP_SLUG:-vaultwarden}"
 VAULTWARDEN_SSO_AUTHORITY="${VAULTWARDEN_SSO_AUTHORITY:-https://${AUTHENTIK_DOMAIN}/application/o/${AUTHENTIK_VAULTWARDEN_APP_SLUG}/}"
 VAULTWARDEN_SSO_SCOPES="${VAULTWARDEN_SSO_SCOPES:-email vaultwarden-email profile offline_access}"
-VAULTWARDEN_SSO_CLIENT_ID="${VAULTWARDEN_SSO_CLIENT_ID:-}"
-VAULTWARDEN_SSO_CLIENT_SECRET="${VAULTWARDEN_SSO_CLIENT_SECRET:-}"
+VAULTWARDEN_SSO_CLIENT_ID="${VAULTWARDEN_SSO_CLIENT_ID-}"
+VAULTWARDEN_SSO_CLIENT_SECRET="${VAULTWARDEN_SSO_CLIENT_SECRET-}"
 
 DOCUSAURUS_ARGS="--rm -it \
   -v /etc/docusaurus:/app \
@@ -33,6 +33,7 @@ declare -A services=(
   [mailserver]="true"
   [vaultwarden]="true"
   ["docusaurus-builder"]="true"
+  ["element-web-builder"]="true"
 )
 
 declare -A service_groups=(
@@ -42,6 +43,7 @@ declare -A containers=(
   [webhook]="webhook"
   [vaultwarden]="vaultwarden"
   ["docusaurus-builder"]="docusaurus-builder"
+  ["element-web-builder"]="element-web-builder"
 )
 
 declare -A images=(
@@ -49,6 +51,7 @@ declare -A images=(
   [mailserver]="it-pal/mailserver:latest"
   [vaultwarden]="vaultwarden/server:latest"
   ["docusaurus-builder"]="it-pal/docusaurus-builder:latest"
+  ["element-web-builder"]="it-pal/element-web-builder:latest"
 )
 
 declare -A run_args=(
@@ -95,6 +98,7 @@ declare -A services_path=(
   [mailserver]="/etc/mailserver"
   [vaultwarden]="/etc/vaultwarden"
   ["docusaurus-builder"]="/etc/docusaurus"
+  ["element-web-builder"]="/etc/chat/element-web"
 )
 
 declare -A dependencies=(
@@ -117,6 +121,7 @@ declare -A github_repos=(
   [webhook]="adnanh webhook master"
   [mailserver]="docker-mailserver docker-mailserver master"
   ["docusaurus-builder"]="facebook docusaurus main"
+  ["element-web-builder"]="element-hq element-web develop"
 )
 
 declare -A skip_tags_releases=(
@@ -125,12 +130,14 @@ declare -A skip_tags_releases=(
 declare -A repos_path=(
   [webhook]="/etc/webhook/repo"
   [mailserver]="/etc/mailserver/repo"
+  ["element-web-builder"]="/etc/chat/element-web/repo"
 )
 
 declare -A build_contexts=(
   [webhook]="/etc/webhook/repo"
   [mailserver]="/etc/mailserver/repo"
   ["docusaurus-builder"]="/etc/docusaurus"
+  ["element-web-builder"]="/etc/chat/element-web/repo"
 )
 
 declare -A build_args=(
@@ -140,12 +147,14 @@ declare -A dockerfiles=(
   [webhook]="/etc/webhook/Dockerfile"
   [mailserver]="/etc/mailserver/repo/Dockerfile"
   ["docusaurus-builder"]="/etc/docusaurus/Dockerfile"
+  ["element-web-builder"]="/etc/chat/element-web/Dockerfile"
 )
 
 declare -A use_buildkit=(
   [webhook]="true"
   [mailserver]="true"
   ["docusaurus-builder"]="true"
+  ["element-web-builder"]="true"
 )
 
 # S3 Backup Configuration
