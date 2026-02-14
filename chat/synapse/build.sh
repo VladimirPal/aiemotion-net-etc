@@ -1,7 +1,8 @@
 #!/bin/bash
-REPO_DIR="/etc/chat/synapse/repo"
-DOCKERFILE_ORIGINAL="/etc/chat/synapse/repo/Dockerfile"
-DOCKERFILE_EXTENDED="/etc/chat/synapse/Dockerfile"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$SCRIPT_DIR/repo"
+DOCKERFILE_ORIGINAL="$REPO_DIR/Dockerfile"
+DOCKERFILE_EXTENDED="$SCRIPT_DIR/Dockerfile"
 
 IMAGE_NAME="${1:-it-pal/synapse:latest}"
 BUILD_CONTEXT="$REPO_DIR"
