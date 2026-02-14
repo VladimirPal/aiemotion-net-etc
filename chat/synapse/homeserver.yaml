@@ -57,6 +57,15 @@ trusted_key_servers:
   - server_name: "matrix.org"
 allow_device_name_lookup_over_federation: false
 
+# TURN configuration for WebRTC voice/video calls.
+turn_uris:
+  - "turn:aiemotion.net:3478?transport=udp"
+  - "turn:aiemotion.net:3478?transport=tcp"
+  - "turns:aiemotion.net:5349?transport=tcp"
+turn_shared_secret_path: "/data/keys/turn-shared-secret.txt"
+turn_user_lifetime: 1h
+turn_allow_guests: true
+
 # Experimental features configuration
 experimental_features:
   msc2697_enabled: true # Enable dehydrated devices MSC2697

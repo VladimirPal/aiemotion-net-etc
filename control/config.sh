@@ -42,12 +42,13 @@ declare -A services=(
   ["docusaurus-builder"]="true"
   ["element-web-builder"]="true"
   ["postgresql-chat"]="true"
+  [coturn]="true"
   [synapse]="true"
   [mas]="true"
 )
 
 declare -A service_groups=(
-  [chat]="synapse mas"
+  [chat]="synapse mas coturn"
 )
 
 declare -A containers=(
@@ -56,6 +57,7 @@ declare -A containers=(
   ["docusaurus-builder"]="docusaurus-builder"
   ["element-web-builder"]="element-web-builder"
   ["postgresql-chat"]="postgresql-chat"
+  [coturn]="coturn"
   [synapse]="synapse"
   [mas]="mas"
 )
@@ -67,6 +69,7 @@ declare -A images=(
   ["docusaurus-builder"]="it-pal/docusaurus-builder:latest"
   ["element-web-builder"]="it-pal/element-web-builder:latest"
   ["postgresql-chat"]="postgres:18-alpine"
+  [coturn]="coturn/coturn:latest"
   [synapse]="it-pal/synapse:latest"
   [mas]="it-pal/mas:latest"
 )
@@ -91,6 +94,14 @@ declare -A run_args=(
     -p 127.0.0.1:8008:8008 \
     ${images[synapse]} \
     -lc \"python3 -m pip install /opt/synapse-s3-storage-provider && exec python3 /start.py\""
+  [coturn]="-d --name ${containers[coturn]} \
+    --network host \
+    --user 0:0 \
+    --restart unless-stopped \
+    -v=/etc/chat/synapse/turnserver.conf:/etc/coturn/turnserver.conf:ro \
+    -v=/etc/letsencrypt:/etc/letsencrypt:ro \
+    ${images[coturn]} \
+    -c /etc/coturn/turnserver.conf"
   [mas]="-d --name ${containers[mas]} \
     --network $CHAT_NETWORK \
     --restart unless-stopped \
@@ -164,6 +175,7 @@ declare -A dependencies=(
 declare -a start_order=(
   "authentik"
   "postgresql-chat"
+  "coturn"
   "synapse"
   "mas"
   "mailserver"
@@ -177,6 +189,7 @@ declare -a stop_order=(
   "webhook"
   "mas"
   "synapse"
+  "coturn"
   "postgresql-chat"
 )
 
